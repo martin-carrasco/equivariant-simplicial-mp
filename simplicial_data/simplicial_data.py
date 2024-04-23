@@ -25,9 +25,11 @@ class SimplicialComplexData(Data):
         elif key == 'x_0':
             return torch.tensor([getattr(self, f'x_0').size(0)])
         elif key == 'x_1':
-            return torch.tensor([getattr(self, f'x_1').size(0)])
+            return torch.tensor([getattr(self, f'x_0').size(0)])
         elif key == 'x_2':
-            return torch.tensor([getattr(self, f'x_2').size(0)])
+            return torch.tensor([getattr(self, f'x_0').size(0)])
+        elif key == 'x':
+            return torch.tensor([getattr(self, f'x').size(0)])
         else:
             return super().__inc__(key, value, *args, **kwargs)
 
