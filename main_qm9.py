@@ -118,11 +118,11 @@ if __name__ == "__main__":
     # Dataset arguments
     parser.add_argument('--dataset', type=str, default='qm9',
                         help='dataset')
-    parser.add_argument('--target_name', type=str, default='H',
+    parser.add_argument('--target_name', type=str, default='alpha',
                         help='regression task')
     parser.add_argument('--dim', type=int, default=2,
                         help='ASC dimension')
-    parser.add_argument('--dis', type=float, default=4.0,
+    parser.add_argument('--dis', type=float, default=3.0,
                         help='radius Rips complex')
     parser.add_argument('--seed', type=int, default=42,
                         help='random seed')
