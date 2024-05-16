@@ -104,7 +104,8 @@ class EMPSNLayer(nn.Module):
             '0_0': 3,
             '0_1': 3,
             '1_1': 6,
-            '1_2': 6,
+            '1_2': 6, 
+            #odd that 2-2 is not in here
         }
         # messages
         self.message_passing = nn.ModuleDict({
@@ -114,7 +115,7 @@ class EMPSNLayer(nn.Module):
         # updates
         self.update = nn.ModuleDict()
         for dim in range(max_dim + 1):
-            factor = 1 + sum([adj_type[2] == str(dim) for adj_type in adjacencies])
+            factor = 1 + sum([adj_type[2] == str(dim) for adj_type in adjacencies]) # +1 because it's the features of the node itself + all features of all nodes around it
             self.update[str(dim)] = nn.Sequential(
                 nn.Linear(factor * num_hidden, num_hidden),
                 nn.SiLU(),
@@ -126,7 +127,7 @@ class EMPSNLayer(nn.Module):
         mes = {
             adj_type: self.message_passing[adj_type](
                 x=(x[adj_type[0]], x[adj_type[2]]),
-                index=index,
+                index=index, 
                 edge_attr=inv[adj_type]
             ) for adj_type, index in adj.items()
         }
@@ -155,17 +156,17 @@ class SimplicialEGNNLayer(nn.Module):
         )
         self.edge_inf_mlp = nn.Sequential(
             nn.Linear(num_hidden, 1),
-            nn.Sigmoid()
+            nn.Sigmoid() #this is the edge weight between 0-1
         )
 
     def forward(self, x, index, edge_attr):
-        index_send, index_rec = index
+        index_send, index_rec = index #these are created by picking them out of the adj dict which is a dict that contains the adjacencies (difference in rank communication) and a list of all nodes that communicate like that
         x_send, x_rec = x
-        sim_send, sim_rec = x_send[index_send], x_rec[index_rec]
+        sim_send, sim_rec = x_send[index_send], x_rec[index_rec] #this is the one hot encoding to filter the correct indices for the graph 
         state = torch.cat((sim_send, sim_rec, edge_attr), dim=1)
 
         messages = self.message_mlp(state)
         edge_weights = self.edge_inf_mlp(messages)
-        messages_aggr = scatter_add(messages * edge_weights, index_rec, dim=0, dim_size=x_rec.shape[0])
+        messages_aggr = scatter_add(messages * edge_weights, index_rec, dim=0, dim_size=x_rec.shape[0]) # this forward pass happens first and only the bordering nodes are passed through 
 
         return messages_aggr

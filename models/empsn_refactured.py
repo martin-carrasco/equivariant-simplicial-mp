@@ -18,10 +18,10 @@ class enhancedEMPSN(nn.Module):
         super().__init__()
 
         # layers
-        self.feature_embedding = nn.Linear(num_input, num_hidden)
+        self.feature_embedding = nn.Linear(num_input, num_hidden) #shouldn't we use their embedding function for this?
 
         self.layers = nn.ModuleList(
-            [EMPSNLayer(adjacencies, self.max_dim, num_hidden) for _ in range(num_layers)]
+            [EMPSNLayer(temporaryname_rank, self.max_dim, num_hidden) for _ in range(num_layers)] #this line needs to adjusted with the right inputs 
         )
 
         self.pre_pool = nn.ModuleDict()
@@ -33,9 +33,9 @@ class enhancedEMPSN(nn.Module):
 
     def forward(self, New_graph: Data) -> Tensor: #different input from the original so it's shorter
         
-        # message passing #up until here is fine
         for layer in self.layers:
             x = layer(x, adj, inv)
+        # message passing #up until here is fine
 
         # read out
         x = {dim: self.pre_pool[dim](feature) for dim, feature in x.items()}
@@ -45,12 +45,15 @@ class enhancedEMPSN(nn.Module):
         out = torch.squeeze(out)
 
         return out
+    
+    def __str__(self):
+        return f"EMPSN ({self.type})"
 
 
 
 class EMPSNLayer(torch.nn.Module):
     """Simplicial Complex Convolutional Network (SCCN) layer by [1]_.
-
+ #this text is wrong but it's adapted from it-Jesse
     This implementation applies to simplicial complexes of any rank.
 
     This layer corresponds to the leftmost tensor diagram labeled Yang22c in
@@ -101,17 +104,17 @@ class EMPSNLayer(torch.nn.Module):
         self.channels = channels
         self.max_rank = max_rank
 
-        # # convolutions within the same rank
-        # self.convs_same_rank = torch.nn.ModuleDict(
-        #     {
-        #         f"rank_{rank}": Conv(
-        #             in_channels=channels,
-        #             out_channels=channels,
-        #             update_func=None,
-        #         )
-        #         for rank in range(max_rank + 1)
-        #     }
-        # )
+        # convolutions within the same rank
+        self.convs_same_rank = torch.nn.ModuleDict(
+            {
+                f"rank_{rank}": Conv(
+                    in_channels=channels,
+                    out_channels=channels,
+                    update_func=None,
+                )
+                for rank in range(max_rank) #hardcoded now for our situation, removed the + 1
+            }
+        )
 
         # convolutions from lower to higher rank
         self.convs_low_to_high = torch.nn.ModuleDict(
