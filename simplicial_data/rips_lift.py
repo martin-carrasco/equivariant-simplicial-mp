@@ -34,7 +34,7 @@ def rips_lift(graph: Data, dim: int, dis: float, fc_nodes: bool=True) -> Tuple[D
     return x_dict, adj, inv
 
 
-def generate_simplices(simplex_tree: SimplexTree) -> Dict[int, Set[FrozenSet]]:
+def generate_simplices(simplex_tree: SimplexTree) -> Dict[int, Set[FrozenSet]]: #I don't think this function is used
     """Generates dictionary of simplices."""
     sim = dict()
 

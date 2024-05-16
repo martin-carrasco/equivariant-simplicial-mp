@@ -72,7 +72,7 @@ class EMPSN(nn.Module):
         x = {dim: self.feature_embedding(feature) for dim, feature in x.items()}
         inv = compute_invariants_3d(x_ind, graph.pos, adj, inv_ind, graph.pos.device)
 
-        # message passing
+        # message passing #up until here is fine
         for layer in self.layers:
             x = layer(x, adj, inv)
 
@@ -80,7 +80,7 @@ class EMPSN(nn.Module):
         x = {dim: self.pre_pool[dim](feature) for dim, feature in x.items()}
         x = {dim: global_add_pool(x[dim], x_batch[dim]) for dim, feature in x.items()}
         state = torch.cat(tuple([feature for dim, feature in x.items()]), dim=1)
-        out = self.post_pool(state)
+        out = self.post_pool(state) #classifier across 19 variables 
         out = torch.squeeze(out)
 
         return out
@@ -137,10 +137,11 @@ class EMPSNLayer(nn.Module):
                 [feature] + [adj_mes for adj_type, adj_mes in mes.items() if adj_type[2] == dim], dim=1
             ) for dim, feature in x.items()
         }
-        h = {dim: self.update[dim](feature) for dim, feature in h.items()}
-        x = {dim: feature + h[dim] for dim, feature in x.items()}
+        h = {dim: self.update[dim](feature) for dim, feature in h.items()}  # update 
+        x = {dim: feature + h[dim] for dim, feature in x.items()} #residual connection
 
         return x
+
 
 
 class SimplicialEGNNLayer(nn.Module):
