@@ -69,9 +69,11 @@ class SimplicialTransform(BaseTransform):
         for k, v in inv_dict.items():
             sim_com_data[f'inv_{k}'] = v
 
-        for att in ['edge_attr', 'edge_index']:
-            if hasattr(sim_com_data, att):
-                sim_com_data.pop(att)
+        del sim_com_data['edge_attr']
+        del sim_com_data['edge_index']
+        # for att in ['edge_attr', 'edge_index']:
+        #     if hasattr(sim_com_data, att):
+        #         sim_com_data.pop(att)
 
         return sim_com_data
 
