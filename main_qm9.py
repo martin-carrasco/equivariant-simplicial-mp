@@ -1,4 +1,5 @@
 import argparse
+import time
 import torch
 import wandb
 import copy
@@ -11,7 +12,7 @@ def main(args):
     # # Generate model
     model = get_model(args).to(args.device)
     # Setup wandb
-    wandb.init(project=f"QM9-{args.target_name}")
+    wandb.init(project=f"base-QM9-{args.target_name}")
     wandb.config.update(vars(args))
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f'Number of parameters: {num_params}')
@@ -34,7 +35,12 @@ def main(args):
             optimizer.zero_grad()
             batch = batch.to(args.device)
 
+            start_forward_time = time.perf_counter()
             pred = model(batch)
+            wandb.log({
+                "forward_time": time.perf_counter() - start_forward_time
+
+            })
             loss = criterion(pred, (batch.y - mean) / mad)
             mae = criterion(pred * mad + mean, batch.y)
             loss.backward()

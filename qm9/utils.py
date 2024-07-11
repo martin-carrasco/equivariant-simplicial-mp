@@ -1,4 +1,6 @@
 import torch
+import wandb
+import time
 from torch import Tensor
 from torch_geometric.data import Data
 from simplicial_data.simplicial_data import SimplicialTransform
@@ -36,8 +38,16 @@ def prepare_data(graph: Data, index: int, target_name: str, qm9_to_ev: Dict[str,
 def generate_loaders_qm9(args: Namespace) -> Tuple[DataLoader, DataLoader, DataLoader]:
     data_root = f'./datasets/QM9_delta_{args.dis}_dim_{args.dim}'
     transform = SimplicialTransform(dim=args.dim, dis=args.dis)
-    dataset = QM9(root=data_root, pre_transform=transform)
-    dataset = dataset.shuffle()
+    dataset_ = QM9(root=data_root)
+    dataset_ = dataset_.shuffle()
+    dataset = []
+
+    for data in dataset_:
+        start_lift_time = time.perf_counter()
+        dataset.append(transform(data))
+        wandb.log({
+            'Lift individual': time.perf_counter() -  start_lift_time
+        })
 
     # filter relevant index and update units to eV
     qm9_to_ev = {'U0': 27.2114, 'U': 27.2114, 'G': 27.2114, 'H': 27.2114, 'zpve': 27211.4, 'gap': 27.2114, 'homo': 27.2114, 'lumo': 27.2114}
