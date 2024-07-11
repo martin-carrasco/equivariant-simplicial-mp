@@ -44,7 +44,8 @@ def generate_loaders_qm9(args: Namespace) -> Tuple[DataLoader, DataLoader, DataL
 
     for data in dataset_:
         start_lift_time = time.perf_counter()
-        dataset.append(transform(data))
+        new_data = transform(data)
+        dataset.append(new_data)
         wandb.log({
             'Lift individual': time.perf_counter() -  start_lift_time
         })
